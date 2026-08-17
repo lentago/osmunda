@@ -60,9 +60,13 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 256Mi
-            limits:
               memory: 512Mi
+            limits:
+              # 512Mi proved too tight on first deploy: V8 sized its heap off
+              # the cgroup limit and the editor OOM-crashed at ~250MB during
+              # boot (CrashLoopBackOff). 1Gi matches what the workload showed
+              # it needs; nodes are 6GiB so this is comfortable.
+              memory: 1Gi
       volumes:
         - name: data
           persistentVolumeClaim:
