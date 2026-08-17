@@ -1,19 +1,28 @@
 # Runbook: EKS overlay — tear down
 
-**Status: skeleton.** The scripts referenced here land later; this documents the
-procedure and the cost gate it closes.
+**Status: exercised.** First drill run 2026-08-17; the script is real:
+[`bin/eks-down.sh`](bin/eks-down.sh). Measured on that run: teardown start →
+`all cluster resources were deleted` → residue check **CLEAN** in **5m 07s**.
+Whole drill, meter-on to meter-off: **21 minutes**, ≈ **$0.05** (control plane
++ single NAT + Fargate pod-seconds) — the flagged free-tier exception at its
+intended size.
 
 > ✅ **This runbook stops the meter.** The control plane bills **~$0.10/hour**
 > until the cluster is deleted (see [`eks-up.md`](eks-up.md)). Run this as soon
 > as the task that needed EKS is done — do not defer it.
 
-## Procedure (to be scripted)
+## Procedure
 
-1. Confirm any state worth keeping is already off-cluster (durable state lives on the lab side or in a managed service — EKS PVCs are scratch).
-2. Delete workloads / suspend Flux so nothing recreates resources mid-teardown.
-3. Delete the node group, then the control plane.
-4. Delete the OIDC provider / IAM roles created for IRSA (or confirm the script did).
-5. Confirm **no** EKS control plane, NAT gateway, load balancer, or orphaned EBS volume remains — each is its own meter.
+```
+CLUSTER=osmunda-eph REGION=us-east-1 ./bin/eks-down.sh
+```
+
+Deletes the IRSA service-account stack, then the cluster (waiting on
+CloudFormation), then runs the residue check: no `osmunda-eph*` clusters, no
+`eksctl-*` stacks, no OIDC providers referencing the cluster. **The teardown
+isn't done when the delete returns — it's done when the residue check prints
+CLEAN.** A non-clean exit is a failing exit code on purpose: every listed
+leftover may be billing.
 
 ## Verify the meter is off
 
