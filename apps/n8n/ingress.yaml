@@ -8,7 +8,10 @@ metadata:
   labels:
     app.kubernetes.io/name: n8n
 spec:
-  ingressClassName: nginx
+  # traefik: k3s's bundled ingress controller. The infra/ notes still plan an
+  # ingress-nginx graduation; this switches back when that HelmRelease lands —
+  # an Ingress pointing at a class with no controller serves nothing.
+  ingressClassName: traefik
   rules:
     - host: n8n.lab.lentago.dev
       http:
