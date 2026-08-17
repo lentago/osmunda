@@ -1,0 +1,16 @@
+# Reconciles workloads under apps/ (n8n is the first). Gated on the
+# infrastructure Kustomization so ingress + storage exist first.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps
+  prune: true
+  dependsOn:
+    - name: infrastructure
+  sourceRef:
+    kind: GitRepository
+    name: flux-system

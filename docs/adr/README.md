@@ -1,22 +1,14 @@
 # Architecture decision records
 
-The decisions below were reconstructed on 2026-08-13 from **this template repository's own**
-commit history, merged pull requests, and CLAUDE.md contents. Dates in each record reflect the
-original decision date, not the reconstruction date. Evidence anchors (PR numbers, file lines)
-have been verified against the current repo state; anything that could not be confirmed is marked
-uncertain.
-
-> **Scaffolding note — for repos created from this template:** ADRs 0001/0002 and their index
-> rows document the template repo itself, not your new repo. On setup (see `SETUP.md`), delete
-> those two records and their rows, keep this file as your repo's ADR log, and use the format
-> guide below for your own decisions.
+The Nygard-style records below document platform decisions for osmunda — one
+decision per record, numbered. Dates reflect when the decision was made.
 
 ## Index
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| [0001](0001-template-as-file-scaffold.md) | Template repo carries files; org settings are applied externally | Accepted | 2026-06-14 |
-| [0002](0002-governance-baked-in-structurally.md) | Template ships governance as structure, not convention | Accepted | 2026-06-14 |
+| [0001](0001-k3s-lab-plus-ephemeral-eks.md) | k3s on the lab, EKS only when ephemeral | Accepted | 2026-08-17 |
+| [0002](0002-flux-over-argocd.md) | Flux for GitOps reconciliation (over Argo CD) | Accepted | 2026-08-17 |
 
 ---
 

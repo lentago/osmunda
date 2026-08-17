@@ -1,0 +1,16 @@
+# Reconciles cluster infrastructure (ingress controller, storage) before apps.
+# apps.yaml dependsOn this Kustomization so workloads never land before their
+# ingress/storage prerequisites.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./infra
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system

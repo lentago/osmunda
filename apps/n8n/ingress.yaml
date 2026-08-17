@@ -1,0 +1,22 @@
+# Host is a placeholder for the lab. TLS (cert-manager) and any auth
+# annotations are wired at cutover; see infra/ingress-nginx.md.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: n8n
+  namespace: n8n
+  labels:
+    app.kubernetes.io/name: n8n
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: n8n.lab.lentago.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: n8n
+                port:
+                  name: http

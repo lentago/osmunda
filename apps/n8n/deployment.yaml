@@ -1,0 +1,69 @@
+# PRE-CUTOVER DRAFT — n8n is still live on LXC 113. Do not point real traffic
+# here until the migration runbook says so. The image is digest-pinned; the
+# webhook host URL, Postgres connection, and N8N_ENCRYPTION_KEY are supplied at
+# cutover via a Secret + ConfigMap (not in this draft, which runs SQLite on the
+# PVC). Single replica + Recreate: the data PVC is ReadWriteOnce and node-local.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/part-of: n8n
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: n8n
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: n8n
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: n8n
+          # tag 2.35.3 — digest-pinned so the deployed bits never drift from
+          # the reviewed ones. Bump both the tag comment and the digest together.
+          image: docker.n8n.io/n8nio/n8n@sha256:31375a4f730081a139bba2d379bf2efaa8e662cc9e131d12bb5e15859d4f0282
+          ports:
+            - name: http
+              containerPort: 5678
+          env:
+            - name: N8N_PORT
+              value: "5678"
+            - name: N8N_PROTOCOL
+              value: "http"
+            # N8N_HOST / WEBHOOK_URL / DB_* / N8N_ENCRYPTION_KEY land at cutover.
+          volumeMounts:
+            - name: data
+              mountPath: /home/node/.n8n
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: n8n-data

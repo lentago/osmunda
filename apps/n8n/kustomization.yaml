@@ -1,0 +1,10 @@
+# PRE-CUTOVER DRAFT — see deployment.yaml. Flux reconciles apps/ via the
+# `apps` Kustomization in clusters/lab/apps.yaml.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
