@@ -33,8 +33,27 @@ jobs:
     secrets: inherit
     with:
       review_prompt: |
-        REPLACE THIS PLACEHOLDER. Describe what THIS repository is (one or two
-        sentences), then list the 4–6 dimensions the reviewer should focus on,
-        each as a bolded category with a short explanation. Tailor to the
-        repo's actual content (e.g. Terraform/AWS, HA YAML, bash scripts,
-        markdown prose, Python). See the fleet for working examples.
+        osmunda is the Lentago Labs Kubernetes platform: GitOps-managed manifests
+        (Flux) for a standing k3s lab cluster plus an ephemeral EKS overlay, with
+        n8n as the first migrated workload. The content is Kubernetes YAML,
+        Flux/kustomize configuration, ADRs, and runbooks — there is no build step
+        and CI validates rather than deploys. Focus the review on:
+
+        - **Manifest correctness** — valid apiVersion/kind, resolvable
+          selectors↔labels, sane probes/resources; would `kubeconform` and a real
+          apply accept this?
+        - **GitOps wiring** — Flux `Kustomization` paths, `sourceRef`, and
+          `dependsOn` ordering (infrastructure before apps); pull-based only, no
+          CI-push deploy sneaking in.
+        - **Image & supply-chain pinning** — images pinned by `@sha256:` digest
+          (tag as comment, kept in sync); CI actions SHA-pinned; binary downloads
+          checksum-verified.
+        - **Cost gate** — anything touching the EKS overlay must preserve the
+          "never leave the control plane up idle" rule and keep the ~$0.10/h cost
+          flagged as the free-tier exception.
+        - **k3s storage reality** — node-local ReadWriteOnce volumes imply
+          single-replica + Recreate for PVC-backed workloads; flag rollouts that
+          would break that.
+        - **Framing & docs** — comparative, fit-for-this-lab framing (no
+          correctness/novelty claims in public copy); n8n manifests stay clearly
+          marked pre-cutover; relative markdown links resolve.

@@ -1,0 +1,17 @@
+# Persistent data for n8n. In this draft the workflow DB is SQLite living on
+# this volume; at cutover we move to Postgres and this PVC holds only n8n's
+# runtime state. storageClassName is intentionally omitted so the cluster
+# default is used (local-path on k3s — see infra/storage.md). Because that
+# class is node-local ReadWriteOnce, the Deployment pins a single replica with
+# a Recreate strategy.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-data
+  namespace: n8n
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

@@ -1,0 +1,65 @@
+# ============================================================================
+# kubeconform — Kubernetes manifest validation
+# ============================================================================
+# Validates every manifest under apps/ and clusters/ against the upstream
+# Kubernetes JSON schemas. Runs unconditionally on every pull request (not
+# path-filtered) so it is safe to make a required status check: a required
+# check whose workflow never triggers is held "Expected" forever.
+#
+# Required status check context produced by this workflow: `kubeconform`
+# (single job named `kubeconform`; state this when marking it required).
+#
+# CRDs (Flux GitOps-toolkit Kustomizations, kustomize.config.k8s.io
+# Kustomizations) have no schema in the default store, so `-ignore-missing-schemas`
+# skips them rather than failing. Core resources (Deployment, Service, PVC,
+# Ingress, Namespace) are validated strictly.
+#
+# kubeconform is installed from a pinned release with a checksum check rather
+# than a Marketplace action, so there is no third-party action to trust here
+# beyond actions/checkout (SHA-pinned).
+# ============================================================================
+
+name: kubeconform
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  kubeconform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install kubeconform (pinned + checksum-verified)
+        run: |
+          set -euo pipefail
+          VERSION=v0.8.0
+          FILE=kubeconform-linux-amd64.tar.gz
+          SHA256=9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883
+          curl -fsSL -o "$FILE" \
+            "https://github.com/yannh/kubeconform/releases/download/${VERSION}/${FILE}"
+          echo "${SHA256}  ${FILE}" | sha256sum -c -
+          tar -xzf "$FILE" kubeconform
+          sudo install -m 0755 kubeconform /usr/local/bin/kubeconform
+          kubeconform -v
+
+      - name: Validate manifests
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find apps clusters -type f \( -name '*.yaml' -o -name '*.yml' \) | sort)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No manifests found under apps/ or clusters/ — nothing to validate."
+            exit 1
+          fi
+          printf '%s\n' "${files[@]}"
+          kubeconform \
+            -strict \
+            -ignore-missing-schemas \
+            -summary \
+            -verbose \
+            -kubernetes-version 1.30.0 \
+            "${files[@]}"

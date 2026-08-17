@@ -1,0 +1,6 @@
+# Infrastructure reconcile target. Empty for now (notes only in this dir).
+# Add HelmRepository/HelmRelease resources for ingress-nginx and any storage
+# config here as they graduate from notes to managed manifests.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: []
