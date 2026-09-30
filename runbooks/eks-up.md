@@ -1,5 +1,13 @@
 # Runbook: EKS overlay — stand up
 
+**What you're about to do:** stand up a temporary EKS cluster, run one specific task on managed Kubernetes, then immediately tear it down with [`eks-down.md`](eks-down.md).
+
+**Why bother:** some tasks genuinely need managed Kubernetes — a cloud-native service dependency, an EKS-specific operator, a Fargate smoke test. The standing k3s cluster handles everything else. This overlay is the escape hatch.
+
+**How long:** about 16 minutes end to end. The first drill measured 15m 29s from script start to proven workload identity.
+
+**What it costs while it exists:** ~$0.10/hour on the EKS control plane, plus NAT gateway time. Run the task, then run the teardown. The longer you wait, the more it costs.
+
 **Status: exercised.** First drill run 2026-08-17 (lentago/.github#119); the
 scripts are real and live in [`bin/`](bin/). Measured on that run:
 
@@ -14,11 +22,11 @@ The IRSA proof is the pod's own `sts get-caller-identity` returning the
 `irsa-demo` role ARN — workload identity flowed issuer → role → pod with no
 stored keys anywhere in the cluster.
 
-> ⛔ **Cost gate — read first.** The EKS control plane bills **~$0.10/hour** for
-> as long as it exists (a flagged exception to free-tier-first). You are turning
-> on a meter. Do not run this without a concrete task and a planned teardown.
-> The moment the task is done, run [`eks-down.md`](eks-down.md). Never leave the
-> control plane up idle overnight.
+> **Heads up.** The EKS control plane bills **~$0.10/hour** for as long as it
+> exists — a flagged exception to free-tier-first. You are turning on a meter.
+> Do not run this without a concrete task and a planned teardown. The moment the
+> task is done, run [`eks-down.md`](eks-down.md). Never leave the control plane
+> up idle overnight.
 
 ## Preconditions
 
@@ -39,15 +47,21 @@ cost is control plane + NAT), associates the IRSA OIDC provider, creates the
 task you came for.
 
 **Flux on EKS — deliberate gap from drill #1:** `clusters/eks-ephemeral/`
-reconciles `apps/`, but the n8n manifests assume the lab's `local-path`
+reconciles `apps/`, but the n8n manifests assume the standing cluster's `local-path`
 storage class, which Fargate cannot satisfy (EFS CSI is the Fargate-shaped
 answer). Wiring the overlay's storage story is tracked work; until it lands,
 the overlay reconcile step stays out of the drill.
 
-## Exit
+## You know it worked when
 
-Go straight to [`eks-down.md`](eks-down.md). Standing up without tearing down is
-the failure this runbook exists to prevent.
+The smoke pod completes and `sts get-caller-identity` returns the `irsa-demo`
+role ARN. No ARN means the IRSA setup failed — stop here and check the
+service-account annotation and OIDC provider before running the actual task.
+
+## Confirm the money stops
+
+Go straight to [`eks-down.md`](eks-down.md) the moment the task is done.
+Standing up without tearing down is the failure this runbook exists to prevent.
 
 ## Remaining TODO
 
