@@ -2,7 +2,7 @@
      Regenerate there; do not hand-edit the banner or badge URLs. -->
 <a href="https://lentago.dev"><img src="./assets/banner.svg" alt="osmunda — Lentago Labs Kubernetes platform · k3s lab + ephemeral EKS · GitOps via Flux" width="100%"></a>
 
-[![main](https://img.shields.io/github/check-runs/lentago/osmunda/main?style=flat-square&labelColor=0e2b1a&color=1b4b2e&label=main)](https://github.com/lentago/osmunda/actions) [![License](https://img.shields.io/github/license/lentago/osmunda?style=flat-square&labelColor=0e2b1a&color=1b4b2e)](https://github.com/lentago/osmunda/blob/main/LICENSE) [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1b4b2e?style=flat-square&labelColor=0e2b1a&logo=readthedocs&logoColor=E0A81C)](https://deepwiki.com/lentago/osmunda)
+[![main](https://img.shields.io/github/check-runs/lentago/osmunda/main?style=flat-square&labelColor=0e2b1a&color=1b4b2e&label=main)](https://github.com/lentago/osmunda/actions) [![License](https://img.shields.io/github/license/lentago/osmunda?style=flat-square&labelColor=0e2b1a&color=1b4b2e)](https://github.com/lentago/osmunda/blob/main/LICENSE)
 
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1b4b2e?style=flat-square&labelColor=0e2b1a) ![Flux](https://img.shields.io/badge/Flux%20GitOps-1b4b2e?style=flat-square&labelColor=0e2b1a) ![k3s](https://img.shields.io/badge/k3s-1b4b2e?style=flat-square&labelColor=0e2b1a)
 
@@ -21,22 +21,6 @@ co-written with [Claude](https://claude.ai) (Anthropic). I direct the work and
 review the output; Claude writes the YAML and prose. I'm an infrastructure
 operator, not a software engineer — please don't read this repo as a portfolio
 of coding ability.
-
-## 📚 Ask this codebase (DeepWiki)
-
-<a href="https://deepwiki.com/lentago/osmunda"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" height="32"></a>
-
-> [DeepWiki](https://deepwiki.com/lentago/osmunda) maintains an AI-generated wiki over this
-> repository — architecture pages, diagrams, and a Q&A box grounded in the actual code. Every
-> public Lentago Labs repo is indexed ([deepwiki.com/lentago](https://deepwiki.com/lentago));
-> it is the fastest way to orient before reading source. It is AI-generated: trust it to orient
-> you, verify against the code before you act on it.
-
-**Good first questions:**
-
-- Why does the lab run k3s on owned hardware instead of a standing managed cloud cluster?
-- When is the EKS overlay allowed to exist, and what stops it from billing idle?
-- Why Flux and not Argo CD for GitOps here?
 
 ## 🧭 What this repo is
 
@@ -101,5 +85,4 @@ managed service.
 > 🌱 **Lentago Labs** is a pro-bono operations practice for organizations that
 > run on volunteers, donations, and one overworked tech person. Everything here
 > is free to take, and we practice what we publish: our own estate runs this
-> way, in the open. Start at the [org profile](https://github.com/lentago), and
-> read this repo on [DeepWiki](https://deepwiki.com/lentago/osmunda).
+> way, in the open. Start at the [org profile](https://github.com/lentago).
