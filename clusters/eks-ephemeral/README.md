@@ -22,6 +22,6 @@ shape:
 | `apps.yaml` | Flux `Kustomization` → `./apps`, so the overlay reconciles the same workload set |
 
 Workload identity on this side uses **IRSA** (OIDC), continuing the fleet's
-workload-identity thesis. The lab side (k3s) uses its own in-cluster identity;
+workload-identity thesis. The on-prem side (k3s) uses its own in-cluster identity;
 manifests shared via `apps/` stay cloud-agnostic, with any EKS-specific
 patches layered here as a kustomize overlay when the scripts exist.

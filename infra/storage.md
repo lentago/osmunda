@@ -2,7 +2,7 @@
 
 **Status: notes / not yet managed.** The plan, not an installed component.
 
-## Lab (k3s)
+## On-prem (k3s)
 
 k3s ships the **local-path** provisioner (Rancher) as the default StorageClass.
 It is node-local `ReadWriteOnce`: a PVC is bound to whichever node the pod first
@@ -23,7 +23,7 @@ Consequences the app manifests already account for:
 
 Use the **EBS CSI** driver with a `gp3` StorageClass. Because the cluster is
 torn down after use, treat any PVC there as scratch — durable state stays on the
-lab side or in a managed service. Access to EBS is via **IRSA** (the CSI
+on-prem side or in a managed service. Access to EBS is via **IRSA** (the CSI
 controller's service account), consistent with the workload-identity thesis.
 
 ## When it graduates from notes

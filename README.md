@@ -9,7 +9,7 @@
 # osmunda
 
 The Lentago Labs **Kubernetes platform** — everything above the nodes. A standing
-**k3s** cluster on the lab's own LXC guests is the default home for workloads; an
+**k3s** cluster on our own LXC guests (on-prem, the machines in our own building) is the default home for workloads; an
 **ephemeral EKS overlay** is stood up and torn down per task when a job genuinely
 needs cloud Kubernetes. Everything is reconciled **pull-based via [Flux](https://fluxcd.io)**:
 the controllers run *inside* the cluster and pull desired state from this repo —
@@ -30,17 +30,17 @@ and how it gets there.
 
 | Layer | Shape |
 |---|---|
-| **Standing cluster** | k3s on the lab's LXC guests — `k3s-1` (pve5), `k3s-2` (pve4). Always on, zero standing cloud cost. |
+| **Standing cluster** | k3s on the on-prem LXC guests — `k3s-1` (pve5), `k3s-2` (pve4). Always on, zero standing cloud cost. |
 | **Cloud overlay** | Ephemeral EKS, created for a specific task and **torn down immediately**. Control plane bills **~$0.10/h** while it exists — a deliberately flagged exception to free-tier-first. |
 | **GitOps** | Pull-based via Flux. Controllers reconcile in-cluster from `clusters/`; CI does not deploy. |
 | **Workload identity** | Continues the fleet's OIDC thesis — IRSA on the EKS side. |
 | **First workload** | n8n, migrating off LXC 113. Manifests in `apps/n8n/` are a **pre-cutover draft**. |
 
-Why it's built this way is recorded in the ADRs, framed as fit-for-this-lab
+Why it's built this way is recorded in the ADRs, framed as fit-for-this-environment
 choices rather than claims about the better tool:
 
-- [ADR-0001](docs/adr/0001-k3s-lab-plus-ephemeral-eks.md) — k3s on the lab, EKS only when ephemeral (cost sovereignty).
-- [ADR-0002](docs/adr/0002-flux-over-argocd.md) — Flux for GitOps (lighter footprint for a 2-node lab; reconcilers match the pull-not-push thesis).
+- [ADR-0001](docs/adr/0001-k3s-lab-plus-ephemeral-eks.md) — k3s on-prem, EKS only when ephemeral (cost sovereignty).
+- [ADR-0002](docs/adr/0002-flux-over-argocd.md) — Flux for GitOps (lighter footprint for a 2-node on-prem cluster; reconcilers match the pull-not-push thesis).
 
 ## 🗺️ Layout
 
@@ -64,7 +64,7 @@ up inseparable from tearing it down:
 - [`runbooks/eks-up.md`](runbooks/eks-up.md) — stand up for a specific, time-boxed task.
 - [`runbooks/eks-down.md`](runbooks/eks-down.md) — stop the meter the moment the task is done.
 
-Durable state never lives on the ephemeral side; it stays on the lab or in a
+Durable state never lives on the ephemeral side; it stays on-prem or in a
 managed service.
 
 ## 🛠️ How it works

@@ -4,9 +4,9 @@
 
 ## Choice
 
-Use **ingress-nginx** as the single IngressClass (`nginx`) for the lab. It is
+Use **ingress-nginx** as the single IngressClass (`nginx`) for the on-prem cluster. It is
 the class the app manifests already reference (`apps/n8n/ingress.yaml`). One
-controller for a 2-node lab keeps the moving-part count low; no multi-class
+controller for a 2-node on-prem cluster keeps the moving-part count low; no multi-class
 routing is needed yet.
 
 - k3s ships **Traefik** by default. Decide explicitly: either keep Traefik and
@@ -22,7 +22,7 @@ Add to `infra/kustomization.yaml` as a Flux `HelmRelease`:
 - `HelmRepository` → `https://kubernetes.github.io/ingress-nginx`
 - `HelmRelease` `ingress-nginx`, pinned chart version, `controller.ingressClassResource.name: nginx`
 - On EKS-ephemeral, front it with a Service `type: LoadBalancer` (NLB); on the
-  k3s lab, expose via the nodes (host network or `externalIPs`).
+  on-prem k3s, expose via the nodes (host network or `externalIPs`).
 
 ## TLS
 
