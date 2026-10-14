@@ -9,7 +9,7 @@
 # osmunda
 
 The Lentago Labs **Kubernetes platform** — everything above the nodes. A standing
-**k3s** cluster on our LXC guests — on-prem, the machines in your own building — is the default home for workloads; an
+**k3s** cluster on our own LXC guests (on-prem, the machines in our own building) is the default home for workloads; an
 **ephemeral EKS overlay** is stood up and torn down per task when a job genuinely
 needs cloud Kubernetes. Everything is reconciled **pull-based via [Flux](https://fluxcd.io)**:
 the controllers run *inside* the cluster and pull desired state from this repo —

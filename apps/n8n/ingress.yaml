@@ -1,4 +1,4 @@
-# Host is a placeholder for the lab. TLS (cert-manager) and any auth
+# Host is a placeholder for the on-prem cluster. TLS (cert-manager) and any auth
 # annotations are wired at cutover; see infra/ingress-nginx.md.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
