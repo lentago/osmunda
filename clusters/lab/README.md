@@ -1,4 +1,4 @@
-# clusters/lab — Flux entrypoint for the k3s lab cluster
+# clusters/lab — Flux entrypoint for the on-prem k3s cluster
 
 This directory is the reconciliation root for the standing **k3s** cluster
 (nodes `k3s-1` on pve5, `k3s-2` on pve4 — provisioned by *kalmia*; this repo

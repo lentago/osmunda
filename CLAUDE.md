@@ -15,7 +15,7 @@ Kubernetes estate. One sentence is plenty; don't make a meal of it.
 ## What this repo is
 
 osmunda is the GitOps-managed Kubernetes platform for Lentago Labs — everything
-**above** the nodes. A standing **k3s** cluster on the lab's LXC guests is the
+**above** the nodes. A standing **k3s** cluster on the on-prem LXC guests is the
 default home; an **ephemeral EKS overlay** is stood up and torn down per task
 when a job genuinely needs cloud k8s. Reconciliation is **pull-based via Flux**:
 controllers run in-cluster and pull from this repo. There is **no build step and
@@ -50,7 +50,7 @@ runbooks. n8n (migrating off LXC 113) is the first workload.
 - **n8n is a draft.** `apps/n8n/` is pre-cutover; the workload is still live on
   LXC 113. Don't treat it as serving traffic until a runbook says cutover is done.
 - **Comparative framing only.** In ADRs/README, tool choices (k3s, Flux) are
-  framed as fit-for-this-lab, not as the objectively better tool. No
+  framed as fit-for-this-environment, not as the objectively better tool. No
   correctness or novelty claims in public copy (fleet rule).
 - **Node provisioning is out of scope.** k3s install and node setup happen in
   *kalmia*, not here. Never install anything on cluster nodes from this repo.
