@@ -1,0 +1,119 @@
+# ============================================================================
+# Claude Code — Automated PR Review (advisory)
+# ============================================================================
+# Thin wrapper around lentago/shared-workflows/claude-review.yml, per
+# lentago/.github ADR-0013. This file is copied from repo-template's: only the
+# review_prompt differs.
+#
+# - Runs when a PR is opened or marked ready for review, and again when it is
+#   labelled `re-review` (Haiku) or `review:sonnet` (Sonnet). It does NOT run on
+#   every push: it shares the fleet's Claude subscription with the bullpen.
+# - Advisory, never a required status check (shared-workflows ADR-0003). The
+#   gate is the arming rule: don't arm until a review has posted and every
+#   finding is triaged on the PR (shared-workflows CLAUDE.md, Auto-merge
+#   arming). A "could not complete" soft-fail comment is not a review —
+#   label `re-review`.
+# - After a labelled run, `clear-label` removes the label so adding it again
+#   triggers again.
+# - A PR that adds or changes THIS file is not reviewed by it: the Claude Code
+#   action skips unless the workflow is identical to the default branch's copy,
+#   and the reusable workflow (v1.5.0+) posts a "not a review" notice instead.
+#   Review such PRs locally and post the result as "Review (Haiku, local)"
+#   (ADR-0013 Decision 2).
+# - Dependabot PRs are skipped: Dependabot runs don't receive Actions secrets,
+#   so the required token would fail the call. Review a bump locally if it
+#   warrants one.
+# - Drafts are skipped (by the reusable workflow) and keep their trigger label
+#   until they are ready.
+# ============================================================================
+
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, labeled]
+
+jobs:
+  review:
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.draft == false &&
+      (github.event.action != 'labeled' ||
+       github.event.label.name == 're-review' ||
+       github.event.label.name == 'review:sonnet')
+    # One review at a time per PR: a re-label during a running review queues
+    # behind it instead of posting a duplicate.
+    concurrency:
+      group: claude-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+    uses: lentago/shared-workflows/.github/workflows/claude-review.yml@v1.5.0
+    secrets: inherit
+    with:
+      model: ${{ github.event.label.name == 'review:sonnet' && 'sonnet' || 'haiku' }}
+      review_prompt: |
+        This repository is lentago/osmunda, the GitOps-managed Kubernetes platform
+        for Lentago Labs: Flux-reconciled manifests for a standing on-prem k3s
+        cluster plus an ephemeral EKS overlay, with n8n as the first migrating
+        workload. Its content is Kubernetes YAML, Flux/kustomize configuration,
+        shell scripts in `runbooks/bin/`, ADRs and runbooks. There is no build or deploy step in
+        CI; Flux in the cluster applies whatever lands on main, so a merged
+        manifest is a live change. Focus your review on:
+
+        - **Manifest correctness**: valid apiVersion/kind, selectors that match
+          labels, sane probes, resources and ports. Would `kubeconform` (run with
+          `-ignore-missing-schemas`, so CRDs are skipped and not checked) and a
+          real apply accept this?
+        - **GitOps wiring**: Flux `Kustomization` paths, `sourceRef` and
+          `dependsOn` (infrastructure before apps), and each `kustomization.yaml`
+          listing the files it should. Reconciliation stays pull-based: flag any
+          workflow or script that runs `kubectl apply` or otherwise pushes to a
+          cluster, and anything that installs on nodes (node provisioning
+          belongs to kalmia).
+        - **Supply-chain pinning and secrets**: container images pinned by
+          `@sha256:` digest with the tag in a comment, bumped together; actions
+          pinned by SHA; downloads checksum-verified. No credentials, tokens,
+          kubeconfigs or AWS identifiers in manifests, runbooks or examples;
+          workload identity goes through IRSA/OIDC, not static keys.
+        - **Cost gate**: changes touching `clusters/eks-ephemeral/` or the
+          `runbooks/` (`eks-up.md`, `eks-down.md`, `bin/`) must keep the rule that
+          the EKS control plane (~$0.10/h) is never left up idle, keep the
+          teardown path complete, and keep the cost flagged as the deliberate
+          free-tier exception. Check shell for quoting and unset-variable
+          mistakes that could skip a teardown step.
+        - **k3s storage and the n8n draft**: `local-path` volumes are node-local
+          RWO, so PVC-backed workloads need a single replica and `Recreate`
+          strategy. `apps/n8n/` is a pre-cutover draft (the live n8n is on LXC
+          113) and must not be presented as serving traffic until a runbook says
+          cutover is done.
+        - **Docs and framing**: ADRs follow the numbered Nygard format; tool
+          choices (k3s, Flux) are framed as fit for this environment, with no
+          correctness or novelty claims in public copy; relative links resolve.
+          The README banner is generated upstream and shouldn't be hand-edited.
+
+  clear-label:
+    needs: review
+    if: >-
+      always() && github.event.action == 'labeled' &&
+      github.event.pull_request.draft == false &&
+      (github.event.label.name == 're-review' || github.event.label.name == 'review:sonnet')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Remove the trigger label so it can be added again
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LABEL: ${{ github.event.label.name }}
+        # REST, not `gh pr edit`: the GraphQL path can trip on PR project
+        # fields with GITHUB_TOKEN, and a label left behind would make the
+        # next re-add a no-op (no `labeled` event).
+        run: |
+          enc=$(jq -rn --arg l "$LABEL" '$l|@uri')
+          gh api --method DELETE "repos/$REPO/issues/$PR/labels/$enc" >/dev/null
