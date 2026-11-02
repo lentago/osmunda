@@ -35,6 +35,12 @@ spec:
           # tag 2.35.3 — digest-pinned so the deployed bits never drift from
           # the reviewed ones. Bump both the tag comment and the digest together.
           image: docker.n8n.io/n8nio/n8n@sha256:31375a4f730081a139bba2d379bf2efaa8e662cc9e131d12bb5e15859d4f0282
+          # Read-only root: n8n writes outside its data dir in exactly two
+          # places, each on an emptyDir below. Boot compiles the editor assets
+          # into ~/.cache/n8n/public (without it, start dies with ENOENT mkdir
+          # /home/node/.cache), and /tmp holds upload scratch. Verified against
+          # 2.35.3 with docker diff (boot plus a Code-node run). Re-check on
+          # every image bump; a new write path is a CrashLoopBackOff.
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -54,6 +60,8 @@ spec:
               mountPath: /home/node/.n8n
             - name: tmp
               mountPath: /tmp
+            - name: cache
+              mountPath: /home/node/.cache
           readinessProbe:
             httpGet:
               path: /healthz
@@ -80,5 +88,14 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: n8n-data
+        # Both emptyDirs sit on node-local disk; sizeLimit bounds them so a
+        # runaway write evicts this pod instead of filling the node.
         - name: tmp
-          emptyDir: {}
+          emptyDir:
+            # Upload scratch (n8nDataTableUploads), a few KiB at boot. Revisit
+            # at cutover against the real workflows from LXC 113.
+            sizeLimit: 1Gi
+        - name: cache
+          emptyDir:
+            # Compiled editor assets, ~63MiB, regenerated on every start.
+            sizeLimit: 256Mi
