@@ -28,11 +28,18 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: n8n
           # tag 2.35.3 — digest-pinned so the deployed bits never drift from
           # the reviewed ones. Bump both the tag comment and the digest together.
           image: docker.n8n.io/n8nio/n8n@sha256:31375a4f730081a139bba2d379bf2efaa8e662cc9e131d12bb5e15859d4f0282
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
           ports:
             - name: http
               containerPort: 5678
@@ -45,6 +52,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /home/node/.n8n
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /healthz
@@ -71,3 +80,5 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: n8n-data
+        - name: tmp
+          emptyDir: {}
